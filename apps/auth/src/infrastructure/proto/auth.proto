@@ -1,0 +1,125 @@
+syntax = "proto3";
+
+package auth;
+
+service AuthService {
+  // Registration
+  rpc Register (RegisterRequest) returns (RegisterResponse);
+  
+  // Login
+  rpc Login (LoginRequest) returns (LoginResponse);
+  
+  // Forgot Password
+  rpc ForgotPassword (ForgotPasswordRequest) returns (ForgotPasswordResponse);
+  
+  // Reset Password
+  rpc ResetPassword (ResetPasswordRequest) returns (ResetPasswordResponse);
+  
+  // Verify OTP
+  rpc VerifyOtp (VerifyOtpRequest) returns (VerifyOtpResponse);
+  
+  // Validate Token
+  rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
+  
+  // Refresh Token
+  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse);
+}
+
+// Registration
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string fullName = 3;
+  optional string phoneNumber = 4;
+}
+
+message RegisterResponse {
+  bool success = 1;
+  string message = 2;
+  string userId = 3;
+}
+
+// Login
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  bool success = 1;
+  string message = 2;
+  string accessToken = 3;
+  string refreshToken = 4;
+  UserInfo userInfo = 5;
+}
+
+// Forgot Password
+message ForgotPasswordRequest {
+  string email = 1;
+}
+
+message ForgotPasswordResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Reset Password
+message ResetPasswordRequest {
+  string token = 1;
+  string newPassword = 2;
+}
+
+message ResetPasswordResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Verify OTP
+message VerifyOtpRequest {
+  string email = 1;
+  string otp = 2;
+  string otpType = 3; // EMAIL_VERIFICATION, PHONE_VERIFICATION, PASSWORD_RESET
+}
+
+message VerifyOtpResponse {
+  bool success = 1;
+  string message = 2;
+  optional string token = 3; // Token for password reset if applicable
+}
+
+// Validate Token
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message ValidateTokenResponse {
+  bool valid = 1;
+  string userId = 2;
+}
+
+// Refresh Token
+message RefreshTokenRequest {
+  string refreshToken = 1;
+}
+
+message RefreshTokenResponse {
+  string accessToken = 1;
+  string refreshToken = 2;
+  bool success = 3;
+  string message = 4;
+}
+
+// Common data types
+message UserInfo {
+  string id = 1;
+  string email = 2;
+  string fullName = 3;
+  optional string phoneNumber = 4;
+  bool emailVerified = 5;
+  bool phoneVerified = 6;
+} 
+
+message BasicResponse {
+  bool success = 1;
+  string message = 2;
+}

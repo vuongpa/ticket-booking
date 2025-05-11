@@ -24,6 +24,12 @@
       "@app/protos/*": [
         "libs/protos/src/*"
       ],
+      "@app/redis": [
+        "libs/redis/src"
+      ],
+      "@app/redis/*": [
+        "libs/redis/src/*"
+      ],
       "@app/shared": [
         "libs/shared/src"
       ],

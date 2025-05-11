@@ -1,8 +1,8 @@
 import { Controller } from '@nestjs/common';
-import { GrpcMethod } from '@nestjs/microservices';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { CreateUserCommand } from '../../application/commands/create-user.command';
-import { GetUserByIdQuery } from '../../application/queries/get-user-by-id.query';
+import { GrpcMethod } from '@nestjs/microservices';
+import { GetUserQuery } from '../../application/queries/get-user.query';
+import { UpdateUserCommand } from '../../application/commands/update-user.command';
 
 @Controller()
 export class UserGrpcController {
@@ -13,8 +13,8 @@ export class UserGrpcController {
 
   @GrpcMethod('UserService', 'GetUser')
   async getUser(data: { userId: string }) {
-    const user = await this.queryBus.execute(new GetUserByIdQuery(data.userId));
-
+    const query = new GetUserQuery(data.userId);
+    const user = await this.queryBus.execute(query);
     return {
       id: user.getId(),
       email: user.getEmail(),
@@ -25,26 +25,27 @@ export class UserGrpcController {
     };
   }
 
-  @GrpcMethod('UserService', 'CreateUser')
-  async createUser(data: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
+  @GrpcMethod('UserService', 'UpdateUser')
+  async updateUser(data: {
+    userId: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
   }) {
-    const command = new CreateUserCommand(
+    const command = new UpdateUserCommand(
+      data.userId,
       data.email,
-      data.password,
       data.firstName,
       data.lastName,
     );
-
-    await this.commandBus.execute(command);
-    const user = await this.queryBus.execute(new GetUserByIdQuery(data.email));
-
+    const user = await this.commandBus.execute(command);
     return {
-      userId: user.getId(),
+      id: user.getId(),
+      email: user.getEmail(),
+      firstName: user.getFirstName(),
+      lastName: user.getLastName(),
       memberId: user.getMemberId(),
+      isActive: user.isUserActive(),
     };
   }
 }

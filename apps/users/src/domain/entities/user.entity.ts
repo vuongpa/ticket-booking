@@ -42,7 +42,7 @@ export class User extends AggregateRoot {
     memberId: string,
   ): User {
     const user = new User(id, email, password, firstName, lastName, memberId);
-    user.apply(new UserCreatedEvent(id, email));
+    user.apply(new UserCreatedEvent(id, email, memberId));
     return user;
   }
 
@@ -54,6 +54,11 @@ export class User extends AggregateRoot {
   public updateProfile(firstName: string, lastName: string): void {
     this.firstName = firstName;
     this.lastName = lastName;
+    this.updatedAt = new Date();
+  }
+
+  public updateEmail(email: string): void {
+    this.email = email;
     this.updatedAt = new Date();
   }
 

@@ -1,18 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
-import {
-  serverConfig,
-  mongoConfig,
-  kafkaConfig,
-  grpcConfig,
-} from './env.config';
+import { mongoConfig, kafkaConfig, grpcConfig } from './env.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [serverConfig, mongoConfig, kafkaConfig, grpcConfig],
+      load: [mongoConfig, kafkaConfig, grpcConfig],
       validationSchema: Joi.object({
         PORT: Joi.number().default(3000),
         MONGODB_URI: Joi.string().required(),

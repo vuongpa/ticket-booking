@@ -1,9 +1,5 @@
 import { registerAs } from '@nestjs/config';
 
-export const serverConfig = registerAs('server', () => ({
-  port: parseInt(process.env.PORT || '3000', 10),
-}));
-
 export const mongoConfig = registerAs('mongo', () => ({
   uri:
     process.env.MONGODB_URI ||
@@ -18,5 +14,5 @@ export const kafkaConfig = registerAs('kafka', () => ({
 
 export const grpcConfig = registerAs('grpc', () => ({
   host: process.env.GRPC_HOST || 'localhost',
-  port: parseInt(process.env.GRPC_PORT || '5000', 10),
+  port: parseInt(process.env.GRPC_PORT || '50051', 10),
 }));

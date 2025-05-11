@@ -4,11 +4,8 @@ import { MicroserviceOptions } from '@nestjs/microservices';
 import { Transport } from '@nestjs/microservices';
 import { join } from 'path';
 import { ValidationPipe } from '@nestjs/common';
-import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
-  const logger = new Logger('Auth Microservice');
-
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AuthModule,
     {
@@ -33,9 +30,6 @@ async function bootstrap() {
   );
 
   await app.listen();
-  logger.log(
-    `Auth Microservice is running on port ${process.env.PORT || 50052}`,
-  );
 }
 
 bootstrap();

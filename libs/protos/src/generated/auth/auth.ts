@@ -12,6 +12,13 @@ import { Observable } from "rxjs";
 
 export const protobufPackage = "auth";
 
+export interface HealthCheckRequest {
+}
+
+export interface HealthCheckResponse {
+  message: string;
+}
+
 /** Registration */
 export interface RegisterRequest {
   email: string;
@@ -114,6 +121,69 @@ export interface BasicResponse {
 }
 
 export const AUTH_PACKAGE_NAME = "auth";
+
+function createBaseHealthCheckRequest(): HealthCheckRequest {
+  return {};
+}
+
+export const HealthCheckRequest: MessageFns<HealthCheckRequest> = {
+  encode(_: HealthCheckRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): HealthCheckRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseHealthCheckRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseHealthCheckResponse(): HealthCheckResponse {
+  return { message: "" };
+}
+
+export const HealthCheckResponse: MessageFns<HealthCheckResponse> = {
+  encode(message: HealthCheckResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.message !== "") {
+      writer.uint32(10).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): HealthCheckResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseHealthCheckResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
 
 function createBaseRegisterRequest(): RegisterRequest {
   return { email: "", password: "", fullName: "" };
@@ -1032,6 +1102,10 @@ export interface AuthServiceClient {
   /** Refresh Token */
 
   refreshToken(request: RefreshTokenRequest): Observable<RefreshTokenResponse>;
+
+  /** Health Check */
+
+  healthCheck(request: HealthCheckRequest): Observable<HealthCheckResponse>;
 }
 
 export interface AuthServiceController {
@@ -1070,6 +1144,12 @@ export interface AuthServiceController {
   refreshToken(
     request: RefreshTokenRequest,
   ): Promise<RefreshTokenResponse> | Observable<RefreshTokenResponse> | RefreshTokenResponse;
+
+  /** Health Check */
+
+  healthCheck(
+    request: HealthCheckRequest,
+  ): Promise<HealthCheckResponse> | Observable<HealthCheckResponse> | HealthCheckResponse;
 }
 
 export function AuthServiceControllerMethods() {
@@ -1082,6 +1162,7 @@ export function AuthServiceControllerMethods() {
       "verifyOtp",
       "validateToken",
       "refreshToken",
+      "healthCheck",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
@@ -1169,6 +1250,16 @@ export const AuthServiceService = {
     responseSerialize: (value: RefreshTokenResponse) => Buffer.from(RefreshTokenResponse.encode(value).finish()),
     responseDeserialize: (value: Buffer) => RefreshTokenResponse.decode(value),
   },
+  /** Health Check */
+  healthCheck: {
+    path: "/auth.AuthService/HealthCheck",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: HealthCheckRequest) => Buffer.from(HealthCheckRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer) => HealthCheckRequest.decode(value),
+    responseSerialize: (value: HealthCheckResponse) => Buffer.from(HealthCheckResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer) => HealthCheckResponse.decode(value),
+  },
 } as const;
 
 export interface AuthServiceServer extends UntypedServiceImplementation {
@@ -1186,6 +1277,8 @@ export interface AuthServiceServer extends UntypedServiceImplementation {
   validateToken: handleUnaryCall<ValidateTokenRequest, ValidateTokenResponse>;
   /** Refresh Token */
   refreshToken: handleUnaryCall<RefreshTokenRequest, RefreshTokenResponse>;
+  /** Health Check */
+  healthCheck: handleUnaryCall<HealthCheckRequest, HealthCheckResponse>;
 }
 
 export interface MessageFns<T> {

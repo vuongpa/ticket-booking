@@ -23,6 +23,15 @@ service AuthService {
   
   // Refresh Token
   rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse);
+
+  // Health Check
+  rpc HealthCheck (HealthCheckRequest) returns (HealthCheckResponse) {}
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  string message = 1;
 }
 
 // Registration

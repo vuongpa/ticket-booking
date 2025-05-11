@@ -19,7 +19,7 @@ import userServiceConfig from '../config/user-service.config';
             package: 'user',
             protoPath: join(
               process.cwd(),
-              'apps/auth/src/infrastructure/proto/user.proto',
+              'apps/users/src/infrastructure/proto/user.proto',
             ),
             url: configService.get('userService.url'),
           },

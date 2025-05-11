@@ -1,6 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { LoginCommand } from '../login.command';
-import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '../../../infrastructure/services/jwt.service';
 import { TokenService } from '../../../infrastructure/services/token.service';
@@ -9,7 +8,7 @@ import { UserRepository } from '../../../infrastructure/repositories/user.reposi
 @CommandHandler(LoginCommand)
 export class LoginHandler implements ICommandHandler<LoginCommand> {
   constructor(
-    private readonly userRepository: IUserRepository,
+    private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
     private readonly tokenService: TokenService,
   ) {}
@@ -30,9 +29,10 @@ export class LoginHandler implements ICommandHandler<LoginCommand> {
     }
 
     // Validate password using repository's verifyPassword method
-    const isPasswordValid = await (
-      this.userRepository as UserRepository
-    ).verifyPassword(user.id, password);
+    const isPasswordValid = await this.userRepository.verifyPassword(
+      user.id,
+      password,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid email or password');
     }

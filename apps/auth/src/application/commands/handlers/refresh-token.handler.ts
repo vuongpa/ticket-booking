@@ -1,16 +1,16 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { RefreshTokenCommand } from '../refresh-token.command';
-import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 import { JwtService } from '../../../infrastructure/services/jwt.service';
 import { UnauthorizedException } from '@nestjs/common';
 import { TokenService } from '../../../infrastructure/services/token.service';
+import { UserRepository } from 'apps/auth/src/infrastructure/repositories/user.repository';
 
 @CommandHandler(RefreshTokenCommand)
 export class RefreshTokenHandler
   implements ICommandHandler<RefreshTokenCommand>
 {
   constructor(
-    private readonly userRepository: IUserRepository,
+    private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
     private readonly tokenService: TokenService,
   ) {}
@@ -24,7 +24,7 @@ export class RefreshTokenHandler
     const { refreshToken } = command;
 
     // Verify refresh token using TokenService
-    const userId = this.tokenService.verifyRefreshToken(refreshToken);
+    const userId = await this.tokenService.verifyRefreshToken(refreshToken);
     if (!userId) {
       throw new UnauthorizedException('Invalid refresh token');
     }

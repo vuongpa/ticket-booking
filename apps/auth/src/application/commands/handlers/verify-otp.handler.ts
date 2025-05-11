@@ -1,15 +1,15 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { VerifyOtpCommand } from '../verify-otp.command';
-import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { OtpService } from '../../../infrastructure/services/otp.service';
 import { TokenService } from '../../../infrastructure/services/token.service';
 import { OtpType } from '../../../domain/models/user.model';
+import { UserRepository } from 'apps/auth/src/infrastructure/repositories/user.repository';
 
 @CommandHandler(VerifyOtpCommand)
 export class VerifyOtpHandler implements ICommandHandler<VerifyOtpCommand> {
   constructor(
-    private readonly userRepository: IUserRepository,
+    private readonly userRepository: UserRepository,
     private readonly otpService: OtpService,
     private readonly tokenService: TokenService,
   ) {}
@@ -66,7 +66,7 @@ export class VerifyOtpHandler implements ICommandHandler<VerifyOtpCommand> {
       };
     } else if (type === OtpType.PASSWORD_RESET) {
       // Generate password reset token
-      const resetToken = this.tokenService.generatePasswordResetToken(
+      const resetToken = await this.tokenService.generatePasswordResetToken(
         user.id,
         email,
       );

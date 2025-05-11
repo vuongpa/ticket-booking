@@ -1,15 +1,15 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ResetPasswordCommand } from '../reset-password.command';
-import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { TokenService } from '../../../infrastructure/services/token.service';
+import { UserRepository } from 'apps/auth/src/infrastructure/repositories/user.repository';
 
 @CommandHandler(ResetPasswordCommand)
 export class ResetPasswordHandler
   implements ICommandHandler<ResetPasswordCommand>
 {
   constructor(
-    private readonly userRepository: IUserRepository,
+    private readonly userRepository: UserRepository,
     private readonly tokenService: TokenService,
   ) {}
 
@@ -19,7 +19,7 @@ export class ResetPasswordHandler
     const { token, newPassword } = command;
 
     // Verify the reset token
-    const userId = this.tokenService.verifyPasswordResetToken(token);
+    const userId = await this.tokenService.verifyPasswordResetToken(token);
     if (!userId) {
       throw new UnauthorizedException('Invalid or expired token');
     }

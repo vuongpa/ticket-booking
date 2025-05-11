@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { RedisService } from '@app/redis';
 
 interface TokenRecord {
   userId: string;
@@ -10,110 +11,94 @@ interface TokenRecord {
 
 @Injectable()
 export class TokenService {
-  // In-memory storage for tokens
-  // In production, use Redis or another suitable database
-  private tokenRecords: TokenRecord[] = [];
+  // Redis keys
+  private readonly PASSWORD_RESET_PREFIX = 'password_reset:';
+  private readonly REFRESH_TOKEN_PREFIX = 'refresh_token:';
 
-  generatePasswordResetToken(userId: string, email: string): string {
+  constructor(private readonly redisService: RedisService) {}
+
+  async generatePasswordResetToken(
+    userId: string,
+    email: string,
+  ): Promise<string> {
     const token =
       Math.random().toString(36).substring(2, 15) +
       Math.random().toString(36).substring(2, 15);
 
-    // Set expiration (1 hour)
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    // Set expiration (1 hour in seconds)
+    const expirationSeconds = 60 * 60;
+    const expiresAt = new Date(Date.now() + expirationSeconds * 1000);
 
-    // Remove any existing password reset tokens for this user
-    this.tokenRecords = this.tokenRecords.filter(
-      (record) =>
-        !(record.userId === userId && record.type === 'PASSWORD_RESET'),
+    // Store token record in Redis
+    await this.redisService.setJSON<TokenRecord>(
+      `${this.PASSWORD_RESET_PREFIX}${token}`,
+      {
+        userId,
+        email,
+        token,
+        type: 'PASSWORD_RESET',
+        expiresAt,
+      },
+      expirationSeconds,
     );
-
-    // Store token record
-    this.tokenRecords.push({
-      userId,
-      email,
-      token,
-      type: 'PASSWORD_RESET',
-      expiresAt,
-    });
-
-    // Remove expired tokens
-    this.cleanupExpiredTokens();
 
     return token;
   }
 
-  verifyPasswordResetToken(token: string): string | null {
-    // Find the token record
-    const tokenRecord = this.tokenRecords.find(
-      (record) =>
-        record.token === token &&
-        record.type === 'PASSWORD_RESET' &&
-        record.expiresAt > new Date(),
+  async verifyPasswordResetToken(token: string): Promise<string | null> {
+    // Find the token record in Redis
+    const tokenRecord = await this.redisService.getJSON<TokenRecord>(
+      `${this.PASSWORD_RESET_PREFIX}${token}`,
     );
 
-    if (!tokenRecord) {
+    if (!tokenRecord || new Date(tokenRecord.expiresAt) <= new Date()) {
       return null;
     }
 
     return tokenRecord.userId;
   }
 
-  removePasswordResetToken(token: string): void {
-    this.tokenRecords = this.tokenRecords.filter(
-      (record) => !(record.token === token && record.type === 'PASSWORD_RESET'),
+  async removePasswordResetToken(token: string): Promise<void> {
+    await this.redisService.del(`${this.PASSWORD_RESET_PREFIX}${token}`);
+  }
+
+  async storeRefreshToken(
+    userId: string,
+    email: string,
+    token: string,
+  ): Promise<void> {
+    // Set expiration (7 days in seconds)
+    const expirationSeconds = 7 * 24 * 60 * 60;
+    const expiresAt = new Date(Date.now() + expirationSeconds * 1000);
+
+    // Store token record in Redis
+    await this.redisService.setJSON<TokenRecord>(
+      `${this.REFRESH_TOKEN_PREFIX}${token}`,
+      {
+        userId,
+        email,
+        token,
+        type: 'REFRESH_TOKEN',
+        expiresAt,
+      },
+      expirationSeconds,
     );
   }
 
-  storeRefreshToken(userId: string, email: string, token: string): void {
-    // Set expiration (7 days)
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-    // Remove any existing refresh tokens for this user
-    this.tokenRecords = this.tokenRecords.filter(
-      (record) =>
-        !(record.userId === userId && record.type === 'REFRESH_TOKEN'),
+  async verifyRefreshToken(token: string): Promise<string | null> {
+    // Find the token record in Redis
+    const tokenRecord = await this.redisService.getJSON<TokenRecord>(
+      `${this.REFRESH_TOKEN_PREFIX}${token}`,
     );
 
-    // Store token record
-    this.tokenRecords.push({
-      userId,
-      email,
-      token,
-      type: 'REFRESH_TOKEN',
-      expiresAt,
-    });
-
-    // Remove expired tokens
-    this.cleanupExpiredTokens();
-  }
-
-  verifyRefreshToken(token: string): string | null {
-    // Find the token record
-    const tokenRecord = this.tokenRecords.find(
-      (record) =>
-        record.token === token &&
-        record.type === 'REFRESH_TOKEN' &&
-        record.expiresAt > new Date(),
-    );
-
-    if (!tokenRecord) {
+    if (!tokenRecord || new Date(tokenRecord.expiresAt) <= new Date()) {
       return null;
     }
 
     return tokenRecord.userId;
   }
 
-  removeRefreshToken(token: string): void {
-    this.tokenRecords = this.tokenRecords.filter(
-      (record) => !(record.token === token && record.type === 'REFRESH_TOKEN'),
-    );
-  }
-
-  private cleanupExpiredTokens(): void {
-    const now = new Date();
-    this.tokenRecords = this.tokenRecords.filter(
-      (record) => record.expiresAt > now,
-    );
+  async removeRefreshToken(token: string): Promise<void> {
+    await this.redisService.del(`${this.REFRESH_TOKEN_PREFIX}${token}`);
   }
 }

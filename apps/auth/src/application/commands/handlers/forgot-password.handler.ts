@@ -1,16 +1,16 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ForgotPasswordCommand } from '../forgot-password.command';
-import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 import { NotFoundException } from '@nestjs/common';
 import { EmailService } from '../../../infrastructure/services/email.service';
 import { TokenService } from '../../../infrastructure/services/token.service';
+import { UserRepository } from 'apps/auth/src/infrastructure/repositories/user.repository';
 
 @CommandHandler(ForgotPasswordCommand)
 export class ForgotPasswordHandler
   implements ICommandHandler<ForgotPasswordCommand>
 {
   constructor(
-    private readonly userRepository: IUserRepository,
+    private readonly userRepository: UserRepository,
     private readonly emailService: EmailService,
     private readonly tokenService: TokenService,
   ) {}
@@ -27,7 +27,7 @@ export class ForgotPasswordHandler
     }
 
     // Generate password reset token using TokenService
-    const resetToken = this.tokenService.generatePasswordResetToken(
+    const resetToken = await this.tokenService.generatePasswordResetToken(
       user.id,
       email,
     );

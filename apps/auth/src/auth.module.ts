@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
 import { JwtModule } from '@nestjs/jwt';
+import { RedisModule } from '@app/redis';
 import { AuthController } from './presentation/controllers/auth.controller';
 import { UserRepository } from './infrastructure/repositories/user.repository';
 import { CommandHandlers } from './application/commands/handlers';
@@ -29,16 +30,14 @@ import { UserServiceModule } from './infrastructure/clients/user-service.module'
         },
       }),
     }),
+    RedisModule.register(),
     CqrsModule,
     UserServiceModule,
   ],
   controllers: [AuthController],
   providers: [
     ...CommandHandlers,
-    {
-      provide: 'IUserRepository',
-      useClass: UserRepository,
-    },
+    UserRepository,
     JwtService,
     EmailService,
     SmsService,

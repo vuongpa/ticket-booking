@@ -11,7 +11,7 @@ import {
 import { ClientGrpc } from '@nestjs/microservices';
 import { AuthGuard } from '@app/shared';
 import { firstValueFrom } from 'rxjs';
-import { UserServiceClient } from '@app/protos';
+import { UserServiceClient } from '@app/protos/generated/user';
 
 @Controller('api/v1/users')
 export class UsersController implements OnModuleInit {

@@ -1,18 +1,16 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { RegisterCommand } from '../register.command';
-import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
-import { User } from '../../../domain/models/user.model';
 import { ConflictException } from '@nestjs/common';
-import { EmailService } from '../../../infrastructure/services/email.service';
-import { SmsService } from '../../../infrastructure/services/sms.service';
-import { UserRepository } from '../../../infrastructure/repositories/user.repository';
-import { OtpService } from '../../../infrastructure/services/otp.service';
-import { OtpType } from '../../../domain/models/user.model';
+import { OtpType, User } from 'apps/auth/src/domain/models/user.model';
+import { UserRepository } from 'apps/auth/src/infrastructure/repositories/user.repository';
+import { EmailService } from 'apps/auth/src/infrastructure/services/email.service';
+import { OtpService } from 'apps/auth/src/infrastructure/services/otp.service';
+import { SmsService } from 'apps/auth/src/infrastructure/services/sms.service';
 
 @CommandHandler(RegisterCommand)
 export class RegisterHandler implements ICommandHandler<RegisterCommand> {
   constructor(
-    private readonly userRepository: IUserRepository,
+    private readonly userRepository: UserRepository,
     private readonly emailService: EmailService,
     private readonly smsService: SmsService,
     private readonly otpService: OtpService,
@@ -41,10 +39,7 @@ export class RegisterHandler implements ICommandHandler<RegisterCommand> {
     const savedUser = await this.userRepository.create(user);
 
     // Set the password using the repository method
-    await (this.userRepository as UserRepository).setPassword(
-      savedUser.id,
-      password,
-    );
+    await this.userRepository.setPassword(savedUser.id, password);
 
     // Generate verification codes
     const emailOtp = this.otpService.generateOtp(

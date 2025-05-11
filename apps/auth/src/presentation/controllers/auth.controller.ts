@@ -11,15 +11,20 @@ import { RefreshTokenCommand } from '../../application/commands/refresh-token.co
 import {
   RegisterResponse,
   LoginResponse,
+  BasicResponse,
   VerifyOtpResponse,
   ValidateTokenResponse,
   RefreshTokenResponse,
-  BasicResponse,
-} from '@app/protos';
+} from '@app/protos/generated/auth';
 
 @Controller()
 export class AuthController {
   constructor(private readonly commandBus: CommandBus) {}
+
+  @GrpcMethod('AuthService', 'HealthCheck')
+  healthCheck() {
+    return { message: 'Hello, world!' };
+  }
 
   @GrpcMethod('AuthService', 'Register')
   async register(request: {

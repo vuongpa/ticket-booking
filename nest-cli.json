@@ -82,15 +82,6 @@
         "tsConfigPath": "libs/shared/tsconfig.lib.json"
       }
     },
-    "ticket-booking": {
-      "type": "application",
-      "root": "apps/ticket-booking",
-      "entryFile": "main",
-      "sourceRoot": "apps/ticket-booking/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/ticket-booking/tsconfig.app.json"
-      }
-    },
     "users": {
       "type": "application",
       "root": "apps/users",

@@ -11,6 +11,11 @@ export class UserGrpcController {
     private readonly queryBus: QueryBus,
   ) {}
 
+  @GrpcMethod('UserService', 'HealthCheck')
+  healthCheck() {
+    return { message: 'Hello, world!' };
+  }
+
   @GrpcMethod('UserService', 'GetUser')
   async getUser(data: { userId: string }) {
     const query = new GetUserQuery(data.userId);

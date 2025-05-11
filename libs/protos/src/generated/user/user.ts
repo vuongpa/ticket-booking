@@ -12,6 +12,13 @@ import { Observable } from "rxjs";
 
 export const protobufPackage = "user";
 
+export interface HealthCheckRequest {
+}
+
+export interface HealthCheckResponse {
+  message: string;
+}
+
 export interface GetUserRequest {
   userId: string;
 }
@@ -33,6 +40,69 @@ export interface User {
 }
 
 export const USER_PACKAGE_NAME = "user";
+
+function createBaseHealthCheckRequest(): HealthCheckRequest {
+  return {};
+}
+
+export const HealthCheckRequest: MessageFns<HealthCheckRequest> = {
+  encode(_: HealthCheckRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): HealthCheckRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseHealthCheckRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseHealthCheckResponse(): HealthCheckResponse {
+  return { message: "" };
+}
+
+export const HealthCheckResponse: MessageFns<HealthCheckResponse> = {
+  encode(message: HealthCheckResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.message !== "") {
+      writer.uint32(10).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): HealthCheckResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseHealthCheckResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
 
 function createBaseGetUserRequest(): GetUserRequest {
   return { userId: "" };
@@ -237,17 +307,23 @@ export interface UserServiceClient {
   getUser(request: GetUserRequest): Observable<User>;
 
   updateUser(request: UpdateUserRequest): Observable<User>;
+
+  healthCheck(request: HealthCheckRequest): Observable<HealthCheckResponse>;
 }
 
 export interface UserServiceController {
   getUser(request: GetUserRequest): Promise<User> | Observable<User> | User;
 
   updateUser(request: UpdateUserRequest): Promise<User> | Observable<User> | User;
+
+  healthCheck(
+    request: HealthCheckRequest,
+  ): Promise<HealthCheckResponse> | Observable<HealthCheckResponse> | HealthCheckResponse;
 }
 
 export function UserServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["getUser", "updateUser"];
+    const grpcMethods: string[] = ["getUser", "updateUser", "healthCheck"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("UserService", method)(constructor.prototype[method], method, descriptor);
@@ -282,11 +358,21 @@ export const UserServiceService = {
     responseSerialize: (value: User) => Buffer.from(User.encode(value).finish()),
     responseDeserialize: (value: Buffer) => User.decode(value),
   },
+  healthCheck: {
+    path: "/user.UserService/HealthCheck",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: HealthCheckRequest) => Buffer.from(HealthCheckRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer) => HealthCheckRequest.decode(value),
+    responseSerialize: (value: HealthCheckResponse) => Buffer.from(HealthCheckResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer) => HealthCheckResponse.decode(value),
+  },
 } as const;
 
 export interface UserServiceServer extends UntypedServiceImplementation {
   getUser: handleUnaryCall<GetUserRequest, User>;
   updateUser: handleUnaryCall<UpdateUserRequest, User>;
+  healthCheck: handleUnaryCall<HealthCheckRequest, HealthCheckResponse>;
 }
 
 export interface MessageFns<T> {

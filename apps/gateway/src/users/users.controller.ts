@@ -24,6 +24,11 @@ export class UsersController implements OnModuleInit {
       this.client.getService<UserServiceClient>('UserService');
   }
 
+  @Get('health-check')
+  async healthCheck() {
+    return firstValueFrom(this.userServiceClient.healthCheck({}));
+  }
+
   @UseGuards(AuthGuard)
   @Get('me')
   async getProfile(@Req() req) {

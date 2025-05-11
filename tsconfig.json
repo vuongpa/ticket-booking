@@ -18,6 +18,12 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
+      "@app/protos": [
+        "libs/protos/src"
+      ],
+      "@app/protos/*": [
+        "libs/protos/src/*"
+      ],
       "@app/shared": [
         "libs/shared/src"
       ],

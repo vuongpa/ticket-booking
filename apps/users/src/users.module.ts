@@ -36,7 +36,7 @@ const EventHandlers = [UserCreatedHandler];
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     ClientsModule.registerAsync([
       {
-        name: 'USER_PACKAGE',
+        name: 'USERS_SERVICE',
         imports: [ConfigurationModule],
         useFactory: (configService: ConfigService) => ({
           transport: Transport.GRPC,
